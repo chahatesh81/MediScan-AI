@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+.venv-wsl/
+venv/
+env/
+
+# Environment variables
+.env
+.env.*
+
+# Keep environment template
+!.env.example
+
+# Dataset
+data/raw/*
+data/processed/*
+data/external/*
+
+# Keep data documentation
+!data/README.md
+
+# Trained models
+models/*.keras
+models/*.h5
+models/*.tflite
+models/*.onnx
+models/checkpoints/
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Generated results
+results/figures/*
+results/metrics/*
+
+# Keep documentation files
+!results/README.md
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

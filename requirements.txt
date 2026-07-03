@@ -1,0 +1,17 @@
+tensorflow[and-cuda]==2.21.0
+numpy
+pandas
+matplotlib
+scikit-learn
+pillow
+opencv-python-headless
+jupyter
+ipykernel
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic-settings
+sqlalchemy
+pytest
+httpx
+python-dotenv
