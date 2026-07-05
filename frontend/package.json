@@ -8,11 +8,12 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "npm run test:api && npm run test:upload && npm run test:app",
+    "test": "npm run test:api && npm run test:upload && npm run test:app && npm run test:result",
     "test:watch": "vitest",
     "test:api": "vitest run src/api/__tests__/mediscan.test.ts",
     "test:upload": "vitest run src/components/__tests__/UploadZone.test.tsx",
-    "test:app": "vitest run src/__tests__/App.test.tsx"
+    "test:app": "vitest run src/__tests__/App.test.tsx",
+    "test:result": "vitest run src/components/__tests__/AnalysisResult.test.tsx"
   },
   "dependencies": {
     "lucide-react": "^1.23.0",
