@@ -13,5 +13,6 @@ python-multipart
 pydantic-settings
 sqlalchemy
 pytest
+pytest-cov
 httpx
 python-dotenv

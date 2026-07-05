@@ -1,0 +1,25 @@
+[run]
+branch = True
+source =
+    backend/app
+
+omit =
+    backend/app/ml/baseline_cnn.py
+    backend/app/ml/baseline_cnn_v2.py
+    backend/app/ml/advanced_model_v3.py
+    backend/app/ml/mobilenet_v2.py
+    backend/app/ml/augmentation_v2.py
+    backend/app/ml/callbacks.py
+    backend/app/ml/metrics.py
+    backend/app/ml/runtime.py
+    backend/app/core/reproducibility.py
+
+[report]
+show_missing = True
+skip_covered = False
+precision = 2
+
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    raise NotImplementedError
