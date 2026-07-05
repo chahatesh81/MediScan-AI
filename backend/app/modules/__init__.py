@@ -1,0 +1,1 @@
+"""Medical analysis module registry."""
