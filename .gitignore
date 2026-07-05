@@ -58,3 +58,8 @@ frontend/.vite/
 coverage/
 *.tmp
 *.temp
+
+# Test coverage artifacts
+.coverage
+htmlcov/
+coverage.xml
