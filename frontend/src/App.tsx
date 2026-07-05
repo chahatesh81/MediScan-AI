@@ -1,8 +1,6 @@
 import {
-  Activity,
   LoaderCircle,
   ScanSearch,
-  ShieldCheck,
 } from 'lucide-react'
 import {
   useEffect,
@@ -15,6 +13,10 @@ import {
 } from './api/mediscan'
 import AnalysisResult from './components/AnalysisResult'
 import UploadZone from './components/UploadZone'
+import WorkflowProgress, {
+  type WorkflowStage,
+} from './components/WorkflowProgress'
+import WorkspaceHeader from './components/WorkspaceHeader'
 import type { AnalysisResponse } from './types/api'
 
 function App() {
@@ -32,6 +34,14 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] =
     useState(false)
   const requestIdRef = useRef(0)
+
+  const workflowStage: WorkflowStage = result
+    ? 'complete'
+    : isAnalyzing
+      ? 'analyzing'
+      : file
+        ? 'ready'
+        : 'upload'
 
   useEffect(() => {
     return () => {
@@ -148,33 +158,12 @@ function App() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-900 bg-slate-950/90">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-400 text-slate-950">
-              <Activity className="size-5" />
-            </div>
+      <WorkspaceHeader />
 
-            <div>
-              <p className="font-semibold tracking-tight">
-                MediScan AI
-              </p>
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <WorkflowProgress stage={workflowStage} />
 
-              <p className="text-xs text-slate-500">
-                Explainable X-ray analysis
-              </p>
-            </div>
-          </div>
-
-          <div className="hidden items-center gap-2 text-xs text-emerald-300 sm:flex">
-            <ShieldCheck className="size-4" />
-            Production backend validated
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <section className="max-w-4xl">
+        <section className="mt-10 max-w-4xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-xs font-medium text-cyan-300">
             <ScanSearch className="size-4" />
             AI-assisted decision-support prototype
