@@ -177,8 +177,8 @@ describe('App analysis orchestration', () => {
       ).toBeInTheDocument()
 
       expect(
-        screen.getByText('99.8%'),
-      ).toBeInTheDocument()
+        screen.getAllByText('99.8%').length,
+      ).toBeGreaterThanOrEqual(1)
 
       expect(
         screen.getByAltText(

@@ -1,10 +1,15 @@
 import {
+  Activity,
   AlertTriangle,
   BrainCircuit,
   Eye,
+  Gauge,
   ShieldAlert,
+  Target,
 } from 'lucide-react'
 import type { AnalysisResponse } from '../types/api'
+import MetricCard from './MetricCard'
+import ModelAgreement from './ModelAgreement'
 
 interface AnalysisResultProps {
   result: AnalysisResponse
@@ -90,7 +95,68 @@ function AnalysisResult({
         </article>
       </div>
 
-      {result.decision.manual_review_recommended && (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="V1 probability"
+          value={percentage(
+            result.primary_prediction.probability,
+          )}
+          detail={`Decision threshold: ${percentage(
+            result.primary_prediction.threshold,
+          )}`}
+          icon={Activity}
+          tone={
+            isPneumonia ? 'amber' : 'emerald'
+          }
+        />
+
+        <MetricCard
+          label="V3 probability"
+          value={percentage(
+            result.secondary_signal.probability,
+          )}
+          detail={`Exploratory threshold: ${percentage(
+            result.secondary_signal.threshold,
+          )}`}
+          icon={Gauge}
+          tone="violet"
+        />
+
+        <MetricCard
+          label="Thorax attention"
+          value={percentage(
+            result.explanation_quality
+              .thorax_energy_ratio,
+          )}
+          detail="Geometric proxy, not an anatomical lung mask"
+          icon={Target}
+          tone="cyan"
+        />
+
+        <MetricCard
+          label="Border attention"
+          value={percentage(
+            result.explanation_quality
+              .border_energy_ratio,
+          )}
+          detail={
+            result.explanation_quality.peak_in_border
+              ? 'Peak attribution occurs near the image border'
+              : 'Peak attribution is outside the border region'
+          }
+          icon={ShieldAlert}
+          tone={
+            result.explanation_quality
+              .border_energy_ratio >= 0.5
+              ? 'amber'
+              : 'emerald'
+          }
+        />
+      </div>
+
+      <ModelAgreement result={result} />
+
+{result.decision.manual_review_recommended && (
         <div className="flex gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-300" />
 
