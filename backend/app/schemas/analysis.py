@@ -29,7 +29,7 @@ class ExplanationInfo(BaseModel):
 class AttentionQuality(BaseModel):
     border_energy_ratio: float
     thorax_energy_ratio: float
-    peak_in_border: float
+    peak_in_border: bool
     quality_status: Literal[
         "HIGH_SHORTCUT_RISK",
         "ELEVATED_SHORTCUT_RISK",
