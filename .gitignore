@@ -49,3 +49,12 @@ results/metrics/*
 Thumbs.db
 .vscode/
 .idea/
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Coverage and temporary files
+coverage/
+*.tmp
+*.temp

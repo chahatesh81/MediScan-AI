@@ -57,8 +57,8 @@ def main() -> None:
     print(f"Images/second:       {images_per_second:.2f}")
     print(f"Milliseconds/batch:  {milliseconds_per_batch:.2f}")
 
-    print("\nPIPELINE BENCHMARK STATUS: COMPLETE")
+    print("\nPIPELINE BENCHMARK STATUS: COMPLETE")r
 
 
 if __name__ == "__main__":
-    main()
+    main()r
