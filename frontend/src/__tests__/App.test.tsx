@@ -137,7 +137,7 @@ async function startAnalysis() {
     screen.getByRole(
       'button',
       {
-        name: 'Analyze X-ray',
+        name: 'Run full analysis',
       },
     ),
   )

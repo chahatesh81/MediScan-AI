@@ -1,5 +1,4 @@
 import {
-  LoaderCircle,
   ScanSearch,
 } from 'lucide-react'
 import {
@@ -11,6 +10,7 @@ import {
   analyzeImage,
   fetchExplanationOverlay,
 } from './api/mediscan'
+import AnalysisReadiness from './components/AnalysisReadiness'
 import AnalysisResult from './components/AnalysisResult'
 import UploadZone from './components/UploadZone'
 import WorkflowProgress, {
@@ -192,24 +192,11 @@ function App() {
           />
 
           {file && !result && (
-            <button
-              type="button"
-              onClick={handleAnalyze}
-              disabled={isAnalyzing}
-              className="mt-5 flex w-full items-center justify-center gap-3 rounded-2xl bg-cyan-400 px-6 py-4 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-wait disabled:opacity-70"
-            >
-              {isAnalyzing ? (
-                <>
-                  <LoaderCircle className="size-5 animate-spin" />
-                  Running AI analysis...
-                </>
-              ) : (
-                <>
-                  <ScanSearch className="size-5" />
-                  Analyze X-ray
-                </>
-              )}
-            </button>
+            <AnalysisReadiness
+              file={file}
+              isAnalyzing={isAnalyzing}
+              onAnalyze={handleAnalyze}
+            />
           )}
 
           {error && (
