@@ -91,7 +91,20 @@ def configure_analysis(
         "prepare_v3_input",
         lambda image: (
             "v3-input",
-            {"pipeline": "test-v3"},
+            {
+                "original_width": 8,
+                "original_height": 8,
+                "crop_bbox": {
+                    "x_min": 0,
+                    "y_min": 0,
+                    "x_max": 8,
+                    "y_max": 8,
+                },
+                "cropped_width": 8,
+                "cropped_height": 8,
+                "retained_area_ratio": 1.0,
+                "target_size": 224,
+            },
         ),
     )
 
@@ -374,3 +387,128 @@ def test_analysis_rejects_missing_model(
         analysis_service.analyze_bytes(
             b"test-image"
         )
+
+
+def test_analysis_result_validates_complete_response_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.app.schemas.analysis import AnalysisResponse
+
+    configure_analysis(
+        monkeypatch,
+        v1_probability=(
+            inference_service.v1_threshold + 0.10
+        ),
+        v3_probability=(
+            inference_service.v3_threshold - 0.10
+        ),
+    )
+
+    result = analysis_service.analyze_bytes(
+        b"test-image"
+    )
+
+    response = AnalysisResponse(**result)
+    payload = response.model_dump(mode="json")
+
+    assert payload["primary_prediction"]["label"] == (
+        "PNEUMONIA"
+    )
+    assert payload["decision"]["final_label"] == (
+        "PNEUMONIA"
+    )
+    assert payload["decision"]["source"] == (
+        "baseline_cnn_v1"
+    )
+    assert payload["secondary_signal"][
+        "automatic_override_allowed"
+    ] is False
+    assert payload["explanation_quality"][
+        "peak_in_border"
+    ] is False
+    assert isinstance(
+        payload["explanation_quality"]["peak_in_border"],
+        bool,
+    )
+
+
+def test_analysis_contract_preserves_disagreement_policy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.app.schemas.analysis import AnalysisResponse
+
+    configure_analysis(
+        monkeypatch,
+        v1_probability=max(
+            0.0,
+            inference_service.v1_threshold - 0.01,
+        ),
+        v3_probability=(
+            inference_service.v3_threshold + 0.10
+        ),
+    )
+
+    result = analysis_service.analyze_bytes(
+        b"test-image"
+    )
+
+    response = AnalysisResponse(**result)
+
+    assert response.primary_prediction.label == "NORMAL"
+    assert (
+        response.secondary_signal.predicted_label
+        == "PNEUMONIA"
+    )
+    assert response.decision.final_label == "NORMAL"
+    assert response.decision.source == "baseline_cnn_v1"
+    assert (
+        response.decision.manual_review_recommended
+        is True
+    )
+    assert response.decision.warning_code == (
+        "V1_NORMAL_V3_PNEUMONIA"
+    )
+    assert (
+        response.secondary_signal.automatic_override_allowed
+        is False
+    )
+
+
+def test_analysis_contract_preserves_preprocessing_and_explanation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.app.schemas.analysis import AnalysisResponse
+
+    configure_analysis(
+        monkeypatch,
+        v1_probability=(
+            inference_service.v1_threshold + 0.10
+        ),
+        v3_probability=(
+            inference_service.v3_threshold
+        ),
+    )
+
+    result = analysis_service.analyze_bytes(
+        b"test-image"
+    )
+
+    response = AnalysisResponse(**result)
+
+    assert response.preprocessing.v1 == (
+        "rgb_bilinear_resize_224"
+    )
+    assert response.preprocessing.v3 == (
+        "artifact_aware_preprocess_xray"
+    )
+    assert response.explanation.method == "gradcam"
+    assert response.explanation.mode == (
+        "positive_gradcam"
+    )
+    assert response.explanation_quality.display_warning is True
+    assert response.visualization_endpoints.heatmap == (
+        "/api/v1/explain"
+    )
+    assert response.visualization_endpoints.overlay == (
+        "/api/v1/explain/overlay"
+    )
