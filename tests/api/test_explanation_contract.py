@@ -161,3 +161,100 @@ def test_explanation_endpoints_hide_internal_errors(
         "detail": message
     }
     assert "private explanation failure" not in response.text
+
+
+def test_explain_omits_optional_visualization_headers(
+    client,
+    monkeypatch,
+) -> None:
+    result = explanation_result(
+        "heatmap_png_bytes"
+    )
+    result["explanation"].pop("visualization")
+    result["explanation"].pop("colormap")
+    result["explanation"].pop("overlay_alpha")
+
+    monkeypatch.setattr(
+        explanation_service,
+        "explain_bytes",
+        lambda image_bytes: result,
+    )
+
+    response = client.post(
+        "/api/v1/explain",
+        files={
+            "file": (
+                "scan.png",
+                b"valid-image-bytes",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+    assert "X-Mediscan-Visualization" not in response.headers
+    assert "X-Mediscan-Colormap" not in response.headers
+    assert "X-Mediscan-Overlay-Alpha" not in response.headers
+
+def test_explain_maps_service_value_error_to_400(
+    client,
+    monkeypatch,
+) -> None:
+    def raise_value_error(
+        image_bytes: bytes,
+    ) -> None:
+        raise ValueError("invalid explanation input")
+
+    monkeypatch.setattr(
+        explanation_service,
+        "explain_bytes",
+        raise_value_error,
+    )
+
+    response = client.post(
+        "/api/v1/explain",
+        files={
+            "file": (
+                "scan.png",
+                b"valid-image-bytes",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "invalid explanation input"
+    }
+
+
+def test_explain_overlay_maps_service_value_error_to_400(
+    client,
+    monkeypatch,
+) -> None:
+    def raise_value_error(
+        image_bytes: bytes,
+    ) -> None:
+        raise ValueError("invalid overlay input")
+
+    monkeypatch.setattr(
+        explanation_service,
+        "overlay_bytes",
+        raise_value_error,
+    )
+
+    response = client.post(
+        "/api/v1/explain/overlay",
+        files={
+            "file": (
+                "scan.png",
+                b"valid-image-bytes",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "invalid overlay input"
+    }

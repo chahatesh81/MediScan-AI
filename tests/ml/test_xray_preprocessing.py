@@ -456,3 +456,475 @@ def test_preprocess_does_not_mutate_input() -> None:
         image,
         original,
     )
+
+
+def test_foreground_mask_promotes_even_kernel_size(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (400, 400),
+        dtype=np.uint8,
+    )
+    image[50:350, 50:350] = 200
+
+    captured_kernel_size = None
+    original_get_structuring_element = (
+        cv2.getStructuringElement
+    )
+
+    def capture_kernel(
+        shape,
+        ksize,
+        *args,
+        **kwargs,
+    ):
+        nonlocal captured_kernel_size
+        captured_kernel_size = ksize
+
+        return original_get_structuring_element(
+            shape,
+            ksize,
+            *args,
+            **kwargs,
+        )
+
+    monkeypatch.setattr(
+        cv2,
+        "getStructuringElement",
+        capture_kernel,
+    )
+
+    build_foreground_mask(image)
+
+    assert captured_kernel_size == (7, 7)
+
+
+def test_find_foreground_bbox_ignores_small_contours(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (100, 100),
+        dtype=np.uint8,
+    )
+
+    small_contour = np.array(
+        [
+            [[1, 1]],
+            [[2, 1]],
+            [[2, 2]],
+            [[1, 2]],
+        ],
+        dtype=np.int32,
+    )
+    large_contour = np.array(
+        [
+            [[20, 20]],
+            [[80, 20]],
+            [[80, 80]],
+            [[20, 80]],
+        ],
+        dtype=np.int32,
+    )
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.build_foreground_mask",
+        lambda input_image: np.zeros_like(
+            input_image,
+            dtype=np.uint8,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "findContours",
+        lambda *args, **kwargs: (
+            [small_contour, large_contour],
+            None,
+        ),
+    )
+
+    bbox = find_foreground_bbox(image)
+
+    assert bbox != (0, 0, 100, 100)
+
+
+def test_find_foreground_bbox_falls_back_when_all_contours_are_small(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (100, 100),
+        dtype=np.uint8,
+    )
+
+    tiny_contour = np.array(
+        [
+            [[1, 1]],
+            [[2, 1]],
+            [[2, 2]],
+            [[1, 2]],
+        ],
+        dtype=np.int32,
+    )
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.build_foreground_mask",
+        lambda input_image: np.zeros_like(
+            input_image,
+            dtype=np.uint8,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "findContours",
+        lambda *args, **kwargs: (
+            [tiny_contour],
+            None,
+        ),
+    )
+
+    bbox = find_foreground_bbox(image)
+
+    assert bbox == (0, 0, 100, 100)
+
+
+def test_find_foreground_bbox_rejects_invalid_final_geometry(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (100, 100),
+        dtype=np.uint8,
+    )
+
+    contour = np.array(
+        [
+            [[10, 10]],
+            [[90, 10]],
+            [[90, 90]],
+            [[10, 90]],
+        ],
+        dtype=np.int32,
+    )
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.build_foreground_mask",
+        lambda input_image: np.zeros_like(
+            input_image,
+            dtype=np.uint8,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "findContours",
+        lambda *args, **kwargs: (
+            [contour],
+            None,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "boundingRect",
+        lambda points: (
+            150,
+            10,
+            80,
+            80,
+        ),
+    )
+
+    bbox = find_foreground_bbox(image)
+
+    assert bbox == (0, 0, 100, 100)
+
+
+def test_crop_foreground_falls_back_from_empty_crop(
+    monkeypatch,
+) -> None:
+    image = np.arange(
+        100,
+        dtype=np.uint8,
+    ).reshape(10, 10)
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.find_foreground_bbox",
+        lambda grayscale: (
+            5,
+            5,
+            5,
+            5,
+        ),
+    )
+
+    cropped, bbox = crop_foreground(image)
+
+    np.testing.assert_array_equal(
+        cropped,
+        image,
+    )
+    assert bbox == (0, 0, 10, 10)
+
+
+def test_resize_rejects_zero_height_image() -> None:
+    image = np.empty(
+        (0, 10),
+        dtype=np.uint8,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Image dimensions must be positive",
+    ):
+        resize_with_padding(
+            image,
+            target_size=32,
+        )
+
+
+def test_resize_rejects_zero_width_image() -> None:
+    image = np.empty(
+        (10, 0),
+        dtype=np.uint8,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Image dimensions must be positive",
+    ):
+        resize_with_padding(
+            image,
+            target_size=32,
+        )
+
+
+def test_foreground_mask_promotes_even_kernel_size(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (400, 400),
+        dtype=np.uint8,
+    )
+    image[50:350, 50:350] = 200
+
+    captured_kernel_size = None
+    original_get_structuring_element = (
+        cv2.getStructuringElement
+    )
+
+    def capture_kernel(
+        shape,
+        ksize,
+        *args,
+        **kwargs,
+    ):
+        nonlocal captured_kernel_size
+        captured_kernel_size = ksize
+
+        return original_get_structuring_element(
+            shape,
+            ksize,
+            *args,
+            **kwargs,
+        )
+
+    monkeypatch.setattr(
+        cv2,
+        "getStructuringElement",
+        capture_kernel,
+    )
+
+    build_foreground_mask(image)
+
+    assert captured_kernel_size == (7, 7)
+
+
+def test_find_foreground_bbox_ignores_small_contours(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (100, 100),
+        dtype=np.uint8,
+    )
+
+    small_contour = np.array(
+        [
+            [[1, 1]],
+            [[2, 1]],
+            [[2, 2]],
+            [[1, 2]],
+        ],
+        dtype=np.int32,
+    )
+    large_contour = np.array(
+        [
+            [[20, 20]],
+            [[80, 20]],
+            [[80, 80]],
+            [[20, 80]],
+        ],
+        dtype=np.int32,
+    )
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.build_foreground_mask",
+        lambda input_image: np.zeros_like(
+            input_image,
+            dtype=np.uint8,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "findContours",
+        lambda *args, **kwargs: (
+            [small_contour, large_contour],
+            None,
+        ),
+    )
+
+    bbox = find_foreground_bbox(image)
+
+    assert bbox != (0, 0, 100, 100)
+
+
+def test_find_foreground_bbox_falls_back_when_all_contours_are_small(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (100, 100),
+        dtype=np.uint8,
+    )
+
+    tiny_contour = np.array(
+        [
+            [[1, 1]],
+            [[2, 1]],
+            [[2, 2]],
+            [[1, 2]],
+        ],
+        dtype=np.int32,
+    )
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.build_foreground_mask",
+        lambda input_image: np.zeros_like(
+            input_image,
+            dtype=np.uint8,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "findContours",
+        lambda *args, **kwargs: (
+            [tiny_contour],
+            None,
+        ),
+    )
+
+    bbox = find_foreground_bbox(image)
+
+    assert bbox == (0, 0, 100, 100)
+
+
+def test_find_foreground_bbox_rejects_invalid_final_geometry(
+    monkeypatch,
+) -> None:
+    image = np.zeros(
+        (100, 100),
+        dtype=np.uint8,
+    )
+
+    contour = np.array(
+        [
+            [[10, 10]],
+            [[90, 10]],
+            [[90, 90]],
+            [[10, 90]],
+        ],
+        dtype=np.int32,
+    )
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.build_foreground_mask",
+        lambda input_image: np.zeros_like(
+            input_image,
+            dtype=np.uint8,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "findContours",
+        lambda *args, **kwargs: (
+            [contour],
+            None,
+        ),
+    )
+    monkeypatch.setattr(
+        cv2,
+        "boundingRect",
+        lambda points: (
+            150,
+            10,
+            80,
+            80,
+        ),
+    )
+
+    bbox = find_foreground_bbox(image)
+
+    assert bbox == (0, 0, 100, 100)
+
+
+def test_crop_foreground_falls_back_from_empty_crop(
+    monkeypatch,
+) -> None:
+    image = np.arange(
+        100,
+        dtype=np.uint8,
+    ).reshape(10, 10)
+
+    monkeypatch.setattr(
+        "backend.app.ml.xray_preprocessing.find_foreground_bbox",
+        lambda grayscale: (
+            5,
+            5,
+            5,
+            5,
+        ),
+    )
+
+    cropped, bbox = crop_foreground(image)
+
+    np.testing.assert_array_equal(
+        cropped,
+        image,
+    )
+    assert bbox == (0, 0, 10, 10)
+
+
+def test_resize_rejects_zero_height_image() -> None:
+    image = np.empty(
+        (0, 10),
+        dtype=np.uint8,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Image dimensions must be positive",
+    ):
+        resize_with_padding(
+            image,
+            target_size=32,
+        )
+
+
+def test_resize_rejects_zero_width_image() -> None:
+    image = np.empty(
+        (10, 0),
+        dtype=np.uint8,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Image dimensions must be positive",
+    ):
+        resize_with_padding(
+            image,
+            target_size=32,
+        )
