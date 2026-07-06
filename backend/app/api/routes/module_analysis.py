@@ -16,11 +16,11 @@ from backend.app.modules.execution import (
     UnknownModuleError,
     authorize_module_execution,
 )
-from backend.app.schemas.analysis import (
-    AnalysisResponse,
-)
 from backend.app.modules.dispatcher import (
     dispatch_module_analysis,
+)
+from backend.app.modules.responses import (
+    ModuleAnalysisResponse,
 )
 
 
@@ -29,13 +29,13 @@ router = APIRouter()
 
 @router.post(
     "/modules/{module_id}/analyze",
-    response_model=AnalysisResponse,
+    response_model=ModuleAnalysisResponse,
     tags=["Modules"],
 )
 async def analyze_module(
     module_id: str,
     file: UploadFile = File(...),
-) -> AnalysisResponse:
+) -> ModuleAnalysisResponse:
     try:
         authorize_module_execution(module_id)
     except UnknownModuleError as exc:
@@ -61,8 +61,17 @@ async def analyze_module(
             image_bytes,
         )
 
-        return AnalysisResponse(
-            **result
+        decision = authorize_module_execution(
+            module_id
+        )
+        module = decision.module
+
+        return ModuleAnalysisResponse(
+            module_id=module.module_id,
+            display_name=module.display_name,
+            modality=module.modality,
+            task_type=module.task_type,
+            result=result,
         )
 
     except HTTPException:

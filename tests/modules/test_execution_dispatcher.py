@@ -76,7 +76,14 @@ def test_dispatch_executes_pneumonia_executor(
         b"image-bytes",
     )
 
-    assert result == expected
+    assert result.model_dump(mode="json") == {
+        "task_type": "binary_classification",
+        "negative_label": "NORMAL",
+        "positive_label": "PNEUMONIA",
+        "predicted_label": "PNEUMONIA",
+        "probability": 0.81,
+        "threshold": 0.53,
+    }
     executor.assert_called_once_with(
         b"image-bytes"
     )

@@ -81,9 +81,7 @@ def dispatch_module_analysis(
         image_bytes
     )
 
-    normalize_module_result(
+    return normalize_module_result(
         decision.module,
         payload,
     )
-
-    return payload
