@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from backend.app.modules.dispatcher import (
+    ModuleExecutorNotRegisteredError,
     get_module_executor,
 )
 from backend.app.modules.normalization import (
@@ -63,7 +64,7 @@ def validate_module_runtime(
     for module in list_executable_modules():
         try:
             get_module_executor(module.module_id)
-        except RuntimeError as exc:
+        except ModuleExecutorNotRegisteredError as exc:
             raise MissingModuleExecutorError(
                 module
             ) from exc

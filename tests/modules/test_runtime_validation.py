@@ -7,6 +7,9 @@ from backend.app.modules.registry import (
     BRAIN_TUMOR_MRI,
     PNEUMONIA_DETECTION,
 )
+from backend.app.modules.dispatcher import (
+    ModuleExecutorNotRegisteredError,
+)
 from backend.app.modules.runtime_validation import (
     MissingModuleExecutorError,
     MissingModuleNormalizerError,
@@ -37,8 +40,8 @@ def test_runtime_validation_rejects_missing_executor(
     def missing_executor(
         module_id: str,
     ):
-        raise RuntimeError(
-            f"missing executor: {module_id}"
+        raise ModuleExecutorNotRegisteredError(
+            module_id
         )
 
     monkeypatch.setattr(
