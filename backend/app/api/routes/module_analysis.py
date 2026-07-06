@@ -19,8 +19,8 @@ from backend.app.modules.execution import (
 from backend.app.schemas.analysis import (
     AnalysisResponse,
 )
-from backend.app.services.analysis_service import (
-    analysis_service,
+from backend.app.modules.dispatcher import (
+    dispatch_module_analysis,
 )
 
 
@@ -56,8 +56,9 @@ async def analyze_module(
             file
         )
 
-        result = analysis_service.analyze_bytes(
-            image_bytes
+        result = dispatch_module_analysis(
+            module_id,
+            image_bytes,
         )
 
         return AnalysisResponse(
