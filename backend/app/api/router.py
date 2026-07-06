@@ -12,6 +12,9 @@ from backend.app.api.routes.health import (
 from backend.app.api.routes.model_info import (
     router as model_info_router,
 )
+from backend.app.api.routes.modules import (
+    router as modules_router,
+)
 from backend.app.api.routes.prediction import (
     router as prediction_router,
 )
@@ -25,6 +28,10 @@ api_router.include_router(
 
 api_router.include_router(
     model_info_router
+)
+
+api_router.include_router(
+    modules_router
 )
 
 api_router.include_router(
