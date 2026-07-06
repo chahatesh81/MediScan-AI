@@ -14,7 +14,6 @@ from backend.app.api.routes.explanation import (
 from backend.app.modules.execution import (
     ModuleNotExecutableError,
     UnknownModuleError,
-    authorize_module_execution,
 )
 from backend.app.modules.dispatcher import (
     dispatch_module_analysis,
@@ -37,21 +36,6 @@ async def analyze_module(
     file: UploadFile = File(...),
 ) -> ModuleAnalysisResponse:
     try:
-        authorize_module_execution(module_id)
-    except UnknownModuleError as exc:
-        await file.close()
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(exc),
-        ) from exc
-    except ModuleNotExecutableError as exc:
-        await file.close()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=str(exc),
-        ) from exc
-
-    try:
         image_bytes = await read_validated_image(
             file
         )
@@ -69,6 +53,18 @@ async def analyze_module(
             task_type=module.task_type,
             result=dispatch_result.result,
         )
+
+    except UnknownModuleError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+    except ModuleNotExecutableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
 
     except HTTPException:
         raise
