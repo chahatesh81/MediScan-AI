@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 from backend.app.modules.execution import (
@@ -11,6 +12,7 @@ from backend.app.modules.normalization import (
     normalize_module_result,
 )
 from backend.app.modules.registry import (
+    MedicalModule,
     get_module,
 )
 from backend.app.services.analysis_service import (
@@ -22,6 +24,12 @@ ModuleExecutor = Callable[
     [bytes],
     dict[str, Any],
 ]
+
+
+@dataclass(frozen=True, slots=True)
+class ModuleDispatchResult:
+    module: MedicalModule
+    result: NormalizedModuleResult
 
 
 class ModuleExecutorRegistrationError(
@@ -125,7 +133,7 @@ def get_module_executor(
 def dispatch_module_analysis(
     module_id: str,
     image_bytes: bytes,
-) -> NormalizedModuleResult:
+) -> ModuleDispatchResult:
     decision = authorize_module_execution(
         module_id
     )
@@ -138,9 +146,14 @@ def dispatch_module_analysis(
         image_bytes
     )
 
-    return normalize_module_result(
+    result = normalize_module_result(
         decision.module,
         payload,
+    )
+
+    return ModuleDispatchResult(
+        module=decision.module,
+        result=result,
     )
 
 

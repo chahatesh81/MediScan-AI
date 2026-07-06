@@ -71,12 +71,14 @@ def test_dispatch_executes_pneumonia_executor(
         executor,
     )
 
-    result = dispatch_module_analysis(
+    dispatch_result = dispatch_module_analysis(
         "pneumonia_detection",
         b"image-bytes",
     )
 
-    assert result.model_dump(mode="json") == {
+    assert dispatch_result.result.model_dump(
+        mode="json"
+    ) == {
         "task_type": "binary_classification",
         "negative_label": "NORMAL",
         "positive_label": "PNEUMONIA",

@@ -56,22 +56,18 @@ async def analyze_module(
             file
         )
 
-        result = dispatch_module_analysis(
+        dispatch_result = dispatch_module_analysis(
             module_id,
             image_bytes,
         )
-
-        decision = authorize_module_execution(
-            module_id
-        )
-        module = decision.module
+        module = dispatch_result.module
 
         return ModuleAnalysisResponse(
             module_id=module.module_id,
             display_name=module.display_name,
             modality=module.modality,
             task_type=module.task_type,
-            result=result,
+            result=dispatch_result.result,
         )
 
     except HTTPException:
