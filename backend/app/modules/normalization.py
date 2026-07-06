@@ -53,6 +53,12 @@ def normalize_pneumonia_result(
     )
 
 
+def supports_module_result_normalization(
+    module: MedicalModule,
+) -> bool:
+    return module.module_id == "pneumonia_detection"
+
+
 def normalize_module_result(
     module: MedicalModule,
     payload: dict[str, Any],
