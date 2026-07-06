@@ -3,6 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from backend.app.api.router import api_router
+from backend.app.modules.runtime_validation import (
+    validate_module_runtime,
+)
 from backend.app.services.inference_service import (
     inference_service,
 )
@@ -12,6 +15,7 @@ from backend.app.services.inference_service import (
 async def lifespan(
     app: FastAPI,
 ):
+    validate_module_runtime()
     inference_service.load_models()
 
     yield
