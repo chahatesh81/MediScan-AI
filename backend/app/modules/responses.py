@@ -30,3 +30,13 @@ class ModuleAnalysisResponse(BaseModel):
     modality: MedicalModality
     task_type: TaskType
     result: ModuleTaskResult
+
+
+class ModuleRuntimeHealthResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
+    status: str
+    validated_module_ids: tuple[str, ...]
+    validated_module_count: int

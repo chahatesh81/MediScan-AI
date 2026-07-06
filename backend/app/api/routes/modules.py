@@ -2,6 +2,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
+from backend.app.modules.runtime_validation import (
+    validate_module_runtime,
+)
+from backend.app.modules.responses import (
+    ModuleRuntimeHealthResponse,
+)
 from backend.app.modules.registry import (
     MedicalModule,
     list_modules,
@@ -40,3 +46,23 @@ def discover_modules() -> dict[str, object]:
         ],
         "total": len(modules),
     }
+
+
+@router.get(
+    "/modules/runtime",
+    response_model=ModuleRuntimeHealthResponse,
+    tags=["Modules"],
+)
+def module_runtime_health(
+) -> ModuleRuntimeHealthResponse:
+    result = validate_module_runtime()
+
+    return ModuleRuntimeHealthResponse(
+        status="ready",
+        validated_module_ids=(
+            result.validated_module_ids
+        ),
+        validated_module_count=len(
+            result.validated_module_ids
+        ),
+    )
