@@ -6,6 +6,9 @@ from typing import Any
 from backend.app.modules.execution import (
     authorize_module_execution,
 )
+from backend.app.modules.normalization import (
+    normalize_module_result,
+)
 from backend.app.services.analysis_service import (
     analysis_service,
 )
@@ -74,6 +77,13 @@ def dispatch_module_analysis(
         decision.module_id
     )
 
-    return executor(
+    payload = executor(
         image_bytes
     )
+
+    normalize_module_result(
+        decision.module,
+        payload,
+    )
+
+    return payload

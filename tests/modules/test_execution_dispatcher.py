@@ -51,7 +51,15 @@ def test_dispatch_executes_pneumonia_executor(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     expected = {
-        "result": "pneumonia-analysis"
+        "primary_prediction": {
+            "model": "baseline_cnn_v1",
+            "label": "PNEUMONIA",
+            "probability": 0.81,
+            "threshold": 0.53,
+        },
+        "secondary_signal": {
+            "model": "advanced_v3",
+        },
     }
     executor = Mock(
         return_value=expected
