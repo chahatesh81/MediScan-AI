@@ -6,32 +6,16 @@ from backend.app.modules.runtime_validation import (
     validate_module_runtime,
 )
 from backend.app.modules.responses import (
-    ModuleDiscoveryItem,
     ModuleDiscoveryResponse,
+    module_discovery_item_from_registry,
     ModuleRuntimeHealthResponse,
 )
 from backend.app.modules.registry import (
-    MedicalModule,
     list_modules,
 )
 
 
 router = APIRouter()
-
-
-def serialize_module(
-    module: MedicalModule,
-) -> ModuleDiscoveryItem:
-    return ModuleDiscoveryItem(
-        module_id=module.module_id,
-        display_name=module.display_name,
-        modality=module.modality,
-        task_type=module.task_type,
-        status=module.status,
-        output_classes=module.output_classes,
-        supports_gradcam=module.supports_gradcam,
-        executable=module.executable,
-    )
 
 
 @router.get(
@@ -44,7 +28,7 @@ def discover_modules() -> ModuleDiscoveryResponse:
 
     return ModuleDiscoveryResponse(
         modules=tuple(
-            serialize_module(module)
+            module_discovery_item_from_registry(module)
             for module in modules
         ),
         total=len(modules),

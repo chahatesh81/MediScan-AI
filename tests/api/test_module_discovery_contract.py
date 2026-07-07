@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 
 from backend.app.api.routes.modules import (
     discover_modules,
-    serialize_module,
 )
 from backend.app.modules.registry import (
     PNEUMONIA_DETECTION,
@@ -13,6 +12,7 @@ from backend.app.modules.registry import (
 from backend.app.modules.responses import (
     ModuleDiscoveryItem,
     ModuleDiscoveryResponse,
+    module_discovery_item_from_registry,
 )
 
 
@@ -21,7 +21,7 @@ pytestmark = pytest.mark.api
 
 def test_module_serializer_returns_typed_contract(
 ) -> None:
-    result = serialize_module(
+    result = module_discovery_item_from_registry(
         PNEUMONIA_DETECTION
     )
 

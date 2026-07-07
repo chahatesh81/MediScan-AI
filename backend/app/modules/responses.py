@@ -43,6 +43,21 @@ class ModuleRuntimeHealthResponse(BaseModel):
     validated_module_count: int
 
 
+def module_discovery_item_from_registry(
+    module: MedicalModule,
+) -> "ModuleDiscoveryItem":
+    return ModuleDiscoveryItem(
+        module_id=module.module_id,
+        display_name=module.display_name,
+        modality=module.modality,
+        task_type=module.task_type,
+        status=module.status,
+        output_classes=module.output_classes,
+        supports_gradcam=module.supports_gradcam,
+        executable=module.executable,
+    )
+
+
 class ModuleDiscoveryItem(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
