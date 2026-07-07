@@ -7,8 +7,9 @@ from backend.app.modules.runtime_validation import (
 )
 from backend.app.modules.responses import (
     ModuleDiscoveryResponse,
-    module_discovery_item_from_registry,
     ModuleRuntimeHealthResponse,
+    module_discovery_item_from_registry,
+    module_runtime_health_response,
 )
 from backend.app.modules.registry import (
     list_modules,
@@ -44,12 +45,6 @@ def module_runtime_health(
 ) -> ModuleRuntimeHealthResponse:
     result = validate_module_runtime()
 
-    return ModuleRuntimeHealthResponse(
-        status="ready",
-        validated_module_ids=(
-            result.validated_module_ids
-        ),
-        validated_module_count=len(
-            result.validated_module_ids
-        ),
+    return module_runtime_health_response(
+        result.validated_module_ids
     )

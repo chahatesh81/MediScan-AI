@@ -33,6 +33,25 @@ class ModuleAnalysisResponse(BaseModel):
     result: ModuleTaskResult
 
 
+def module_runtime_health_response(
+    validated_module_ids: tuple[str, ...],
+) -> "ModuleRuntimeHealthResponse":
+    if len(set(validated_module_ids)) != len(
+        validated_module_ids
+    ):
+        raise ValueError(
+            "Validated module IDs must be unique."
+        )
+
+    return ModuleRuntimeHealthResponse(
+        status="ready",
+        validated_module_ids=validated_module_ids,
+        validated_module_count=len(
+            validated_module_ids
+        ),
+    )
+
+
 class ModuleRuntimeHealthResponse(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
