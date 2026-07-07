@@ -6,6 +6,8 @@ from backend.app.modules.runtime_validation import (
     validate_module_runtime,
 )
 from backend.app.modules.responses import (
+    ModuleDiscoveryItem,
+    ModuleDiscoveryResponse,
     ModuleRuntimeHealthResponse,
 )
 from backend.app.modules.registry import (
@@ -19,33 +21,34 @@ router = APIRouter()
 
 def serialize_module(
     module: MedicalModule,
-) -> dict[str, object]:
-    return {
-        "module_id": module.module_id,
-        "display_name": module.display_name,
-        "modality": module.modality.value,
-        "task_type": module.task_type.value,
-        "status": module.status.value,
-        "output_classes": list(module.output_classes),
-        "supports_gradcam": module.supports_gradcam,
-        "executable": module.executable,
-    }
+) -> ModuleDiscoveryItem:
+    return ModuleDiscoveryItem(
+        module_id=module.module_id,
+        display_name=module.display_name,
+        modality=module.modality,
+        task_type=module.task_type,
+        status=module.status,
+        output_classes=module.output_classes,
+        supports_gradcam=module.supports_gradcam,
+        executable=module.executable,
+    )
 
 
 @router.get(
     "/modules",
+    response_model=ModuleDiscoveryResponse,
     tags=["Modules"],
 )
-def discover_modules() -> dict[str, object]:
+def discover_modules() -> ModuleDiscoveryResponse:
     modules = list_modules()
 
-    return {
-        "modules": [
+    return ModuleDiscoveryResponse(
+        modules=tuple(
             serialize_module(module)
             for module in modules
-        ],
-        "total": len(modules),
-    }
+        ),
+        total=len(modules),
+    )
 
 
 @router.get(

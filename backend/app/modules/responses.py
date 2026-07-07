@@ -3,6 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict
 
 from backend.app.modules.registry import (
+    ModuleStatus,
     MedicalModality,
     TaskType,
 )
@@ -40,3 +41,29 @@ class ModuleRuntimeHealthResponse(BaseModel):
     status: str
     validated_module_ids: tuple[str, ...]
     validated_module_count: int
+
+
+class ModuleDiscoveryItem(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+    module_id: str
+    display_name: str
+    modality: MedicalModality
+    task_type: TaskType
+    status: ModuleStatus
+    output_classes: tuple[str, ...]
+    supports_gradcam: bool
+    executable: bool
+
+
+class ModuleDiscoveryResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+    modules: tuple[ModuleDiscoveryItem, ...]
+    total: int
