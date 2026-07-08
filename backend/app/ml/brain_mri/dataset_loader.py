@@ -244,6 +244,8 @@ class ArchiveBackedImageLoader:
             ),
         )
 
+        self._open_archives: dict[str, ZipFile] = {}
+
     @property
     def records(self) -> tuple[ArchiveBackedRecord, ...]:
         return self._records
@@ -262,25 +264,61 @@ class ArchiveBackedImageLoader:
             if record.split is split
         )
 
+    def _archive_for(
+        self,
+        archive_name: str,
+    ) -> ZipFile:
+        archive = self._open_archives.get(
+            archive_name
+        )
+
+        if archive is None:
+            archive = ZipFile(
+                self._archive_paths[archive_name]
+            )
+            self._open_archives[
+                archive_name
+            ] = archive
+
+        return archive
+
+    def close(self) -> None:
+        for archive in self._open_archives.values():
+            archive.close()
+
+        self._open_archives.clear()
+
+    def __enter__(
+        self,
+    ) -> "ArchiveBackedImageLoader":
+        return self
+
+    def __exit__(
+        self,
+        exc_type: object,
+        exc_value: object,
+        traceback: object,
+    ) -> None:
+        self.close()
+
     def read_payload(
         self,
         record: ArchiveBackedRecord,
     ) -> bytes:
-        archive_path = self._archive_paths[
+        archive = self._archive_for(
             record.archive_name
-        ]
+        )
 
-        with ZipFile(archive_path) as archive:
-            try:
-                return archive.read(
-                    record.archive_member
-                )
-            except KeyError as exc:
-                raise ArchiveMemberNotFoundError(
-                    "Archive member not found: "
-                    f"{record.archive_name} :: "
-                    f"{record.archive_member}"
-                ) from exc
+        try:
+            return archive.read(
+                record.archive_member
+            )
+        except KeyError as exc:
+            raise ArchiveMemberNotFoundError(
+                "Archive member not found: "
+                f"{record.archive_name} :: "
+                f"{record.archive_member}"
+            ) from exc
 
     def load_image(
         self,
