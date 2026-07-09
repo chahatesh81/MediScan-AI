@@ -1,3 +1,8 @@
+import type {
+  ModuleAnalysisResponse,
+  ModuleDiscoveryResponse,
+} from '../types/api'
+
 import type { AnalysisResponse } from '../types/api'
 
 interface ApiErrorBody {
@@ -160,6 +165,95 @@ export async function fetchExplanationOverlay(
       response.status,
     )
   }
+
+  return URL.createObjectURL(imageBlob)
+}
+
+export async function fetchModules(
+): Promise<ModuleDiscoveryResponse> {
+  let response: Response
+
+  try {
+    response = await fetch('/api/v1/modules')
+  } catch {
+    throw new MediscanApiError(
+      'Could not connect to the MediScan backend. Check that the API server is running and try again.',
+      'NETWORK_ERROR',
+    )
+  }
+
+  if (!response.ok) {
+    await throwResponseError(response)
+  }
+
+  try {
+    return (
+      await response.json()
+    ) as ModuleDiscoveryResponse
+  } catch {
+    throw new MediscanApiError(
+      'The MediScan backend returned an invalid response.',
+      'INVALID_RESPONSE',
+      response.status,
+    )
+  }
+}
+
+export async function analyzeModule(
+  moduleId: string,
+  file: File,
+): Promise<ModuleAnalysisResponse> {
+  const response = await request(
+    `/api/v1/modules/${encodeURIComponent(
+      moduleId,
+    )}/analyze`,
+    file,
+  )
+
+  if (!response.ok) {
+    await throwResponseError(response)
+  }
+
+  try {
+    return (
+      await response.json()
+    ) as ModuleAnalysisResponse
+  } catch {
+    throw new MediscanApiError(
+      'The MediScan backend returned an invalid response.',
+      'INVALID_RESPONSE',
+      response.status,
+    )
+  }
+}
+
+export async function fetchModuleExplanation(
+  moduleId: string,
+  file: File,
+): Promise<string> {
+  const response = await request(
+    `/api/v1/modules/${encodeURIComponent(
+      moduleId,
+    )}/explain`,
+    file,
+  )
+
+  if (!response.ok) {
+    await throwResponseError(response)
+  }
+
+  const contentType =
+    response.headers.get('content-type') ?? ''
+
+  if (!contentType.startsWith('image/png')) {
+    throw new MediscanApiError(
+      'The explanation response was not a PNG image.',
+      'INVALID_RESPONSE',
+      response.status,
+    )
+  }
+
+  const imageBlob = await response.blob()
 
   return URL.createObjectURL(imageBlob)
 }

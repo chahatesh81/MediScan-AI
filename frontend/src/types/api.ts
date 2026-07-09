@@ -78,3 +78,53 @@ export interface AnalysisResponse {
   visualization_endpoints: VisualizationEndpoints
   disclaimer: string
 }
+
+export type MedicalModuleStatus =
+  | 'AVAILABLE'
+  | 'PLANNED'
+
+export type MedicalModality =
+  | 'chest_xray'
+  | 'brain_mri'
+  | 'skin_image'
+  | 'mammography'
+
+export type ModuleTaskType =
+  | 'binary_classification'
+  | 'multiclass_classification'
+  | 'multilabel_classification'
+
+export interface ModuleDiscoveryItem {
+  module_id: string
+  display_name: string
+  modality: MedicalModality
+  task_type: ModuleTaskType
+  status: MedicalModuleStatus
+  output_classes: string[]
+  supports_gradcam: boolean
+  executable: boolean
+}
+
+export interface ModuleDiscoveryResponse {
+  modules: ModuleDiscoveryItem[]
+  total: number
+}
+
+export interface ModuleClassScore {
+  label: string
+  probability: number
+}
+
+export interface MulticlassModuleResult {
+  result_type: 'multiclass_classification'
+  predicted_label: string
+  scores: ModuleClassScore[]
+}
+
+export interface ModuleAnalysisResponse {
+  module_id: string
+  display_name: string
+  modality: MedicalModality
+  task_type: ModuleTaskType
+  result: MulticlassModuleResult
+}
