@@ -19,6 +19,8 @@ def generate_gradcam_heatmap(
     image_batch: tf.Tensor,
     last_conv_layer_name: str | None = None,
     return_mode: bool = False,
+    output_layer_name: str = "pneumonia_probability",
+    target_class_index: int = 0,
 ) -> np.ndarray | tuple[np.ndarray, str]:
     """
     Generate a normalized attribution heatmap.
@@ -41,8 +43,17 @@ def generate_gradcam_heatmap(
     )
 
     output_layer = model.get_layer(
-        "pneumonia_probability"
+        output_layer_name
     )
+
+    output_units = int(output_layer.units)
+
+    if not 0 <= target_class_index < output_units:
+        raise ValueError(
+            "Grad-CAM target class index is out of range: "
+            f"{target_class_index}; expected 0 to "
+            f"{output_units - 1}."
+        )
 
     grad_model = tf.keras.Model(
         inputs=model.inputs,
@@ -82,7 +93,10 @@ def generate_gradcam_heatmap(
                 ),
             )
 
-        target_score = logits[:, 0]
+        target_score = logits[
+            :,
+            target_class_index,
+        ]
 
     gradients = tape.gradient(
         target_score,

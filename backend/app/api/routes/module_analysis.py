@@ -21,9 +21,78 @@ from backend.app.modules.dispatcher import (
 from backend.app.modules.responses import (
     ModuleAnalysisResponse,
 )
+from backend.app.services.brain_mri_explanation_service import (
+    brain_mri_explanation_service,
+)
 
 
 router = APIRouter()
+
+
+@router.post(
+    "/modules/brain_tumor_mri/explain",
+    tags=["Modules"],
+    responses={
+        200: {
+            "content": {
+                "image/png": {}
+            }
+        }
+    },
+)
+async def explain_brain_tumor_mri(
+    file: UploadFile = File(...),
+):
+    try:
+        image_bytes = await read_validated_image(
+            file
+        )
+
+        result = (
+            brain_mri_explanation_service
+            .explain_bytes(image_bytes)
+        )
+
+        from fastapi.responses import Response
+
+        return Response(
+            content=result["heatmap_png_bytes"],
+            media_type="image/png",
+            headers={
+                "X-MediScan-Module": (
+                    "brain_tumor_mri"
+                ),
+                "X-MediScan-Predicted-Label": (
+                    result["prediction"]["label"]
+                ),
+                "X-MediScan-Explanation-Method": (
+                    result["explanation"]["method"]
+                ),
+            },
+        )
+
+    except HTTPException:
+        raise
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_500_INTERNAL_SERVER_ERROR
+            ),
+            detail=(
+                "Brain MRI explanation could not "
+                "be completed."
+            ),
+        ) from exc
+
+    finally:
+        await file.close()
 
 
 @router.post(
