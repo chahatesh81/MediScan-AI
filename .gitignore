@@ -63,3 +63,5 @@ coverage/
 .coverage
 htmlcov/
 coverage.xml
+.local/
+models/brain_mri/
