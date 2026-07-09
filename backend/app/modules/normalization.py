@@ -56,7 +56,25 @@ def normalize_pneumonia_result(
 def supports_module_result_normalization(
     module: MedicalModule,
 ) -> bool:
-    return module.module_id == "pneumonia_detection"
+    return module.module_id in {
+        "pneumonia_detection",
+        "brain_tumor_mri",
+    }
+
+
+def normalize_brain_mri_result(
+    payload: dict[str, Any],
+) -> MulticlassClassificationResult:
+    return MulticlassClassificationResult(
+        predicted_label=payload["predicted_label"],
+        scores=tuple(
+            {
+                "label": score["label"],
+                "probability": score["probability"],
+            }
+            for score in payload["scores"]
+        ),
+    )
 
 
 def normalize_module_result(
@@ -65,5 +83,8 @@ def normalize_module_result(
 ) -> NormalizedModuleResult:
     if module.module_id == "pneumonia_detection":
         return normalize_pneumonia_result(payload)
+
+    if module.module_id == "brain_tumor_mri":
+        return normalize_brain_mri_result(payload)
 
     raise UnsupportedResultNormalizationError(module)

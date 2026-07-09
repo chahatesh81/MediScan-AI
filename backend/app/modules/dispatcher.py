@@ -18,6 +18,9 @@ from backend.app.modules.registry import (
 from backend.app.services.analysis_service import (
     analysis_service,
 )
+from backend.app.services.brain_mri_inference_service import (
+    brain_mri_inference_service,
+)
 
 
 ModuleExecutor = Callable[
@@ -94,6 +97,14 @@ def execute_pneumonia_detection(
     )
 
 
+def execute_brain_tumor_mri(
+    image_bytes: bytes,
+) -> dict[str, Any]:
+    return brain_mri_inference_service.predict_bytes(
+        image_bytes
+    )
+
+
 _MODULE_EXECUTORS: dict[
     str,
     ModuleExecutor,
@@ -160,4 +171,9 @@ def dispatch_module_analysis(
 register_module_executor(
     "pneumonia_detection",
     execute_pneumonia_detection,
+)
+
+register_module_executor(
+    "brain_tumor_mri",
+    execute_brain_tumor_mri,
 )

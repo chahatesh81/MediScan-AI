@@ -93,7 +93,7 @@ BRAIN_TUMOR_MRI = MedicalModule(
     display_name="Brain Tumor MRI Analysis",
     modality=MedicalModality.BRAIN_MRI,
     task_type=TaskType.MULTICLASS_CLASSIFICATION,
-    status=ModuleStatus.PLANNED,
+    status=ModuleStatus.AVAILABLE,
     output_classes=(
         "GLIOMA",
         "MENINGIOMA",
@@ -101,7 +101,7 @@ BRAIN_TUMOR_MRI = MedicalModule(
         "NO_TUMOR",
     ),
     supports_gradcam=True,
-    executable=False,
+    executable=True,
 )
 
 
